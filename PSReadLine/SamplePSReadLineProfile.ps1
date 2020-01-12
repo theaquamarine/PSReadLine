@@ -564,3 +564,29 @@ Set-PSReadLineOption -CommandValidationHandler {
         }
     }
 }
+
+# Emulate zsh's AUTO_REMOVE_SLASH http://zsh.sourceforge.net/Doc/Release/Options.html#index-AUTOREMOVESLASH
+# Semicolon is command separator
+# Comma, for lists of paths
+# Pipe for pipeline
+# Ampersand is a command separator in PS7 (pipeline chaining) and background operator in 6
+# Period, definitely not - makes relative paths hard to type
+# Slash would be an issue on non-Windows
+# Brackets/Braces, not sure. In practice, bind is replaced by InsertPairedBraces/SmartCloseBraces
+# Colon, Dash and Equals, not sure
+Set-PSReadlineKeyHandler -Key Spacebar, ';', ',', '|', '&' `
+    -BriefDescription AutoRemoveBackslash `
+    -LongDescription "Remove final character before delimiters if it is a backslash" `
+    -ScriptBlock {
+    param($key, $arg)
+
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+    if ($line[$cursor - 1] -eq [IO.Path]::DirectorySeparatorChar) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::Delete($cursor - 1, 1)
+    }
+
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$($key.KeyChar)")
+}
