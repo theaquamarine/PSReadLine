@@ -1096,5 +1096,48 @@ namespace Microsoft.PowerShell
                 SaveEditItem(GroupedEdit.Create(new List<EditItem> {firstDelete, lastInsert}));
             }
         }
+
+        private void AutoRemoveSlash(ConsoleKeyInfo? key = null)
+        {
+            var completions = GetCompletions();
+            if (completions == null || _tabCommandCount == 0) {
+                //if (completions == null || completions.CurrentMatchIndex < 0)
+                Insert(completions.ToString());
+                SelfInsert(key);
+            }
+            else
+            {
+                //CompletionResult r = new CompletionResult(currentMenuItem
+                //                .CompletionText.Substring(0, _current - completions.ReplacementIndex));
+                //DoReplacementForCompletion(r, completions);
+                Insert("SDFSfGSDFS");
+                //Insert("completionmatchIndex = " + completions.CurrentMatchIndex.ToString());
+                //Insert("completionmatches.count = " + completions.CompletionMatches.Count);
+                var completionResult = completions.CompletionMatches[completions.CompletionMatches.Count - 1];
+
+                var replacementText = completionResult.CompletionText;
+                int cursorAdjustment = 0;
+                if (completionResult.ResultType == CompletionResultType.ProviderContainer)
+                {
+                    replacementText = GetReplacementTextForDirectory(replacementText, ref cursorAdjustment);
+                }
+
+                Insert(replacementText);
+                Insert(completionResult.ResultType.ToString());
+                if (completionResult.ResultType == CompletionResultType.ProviderContainer && replacementText.EndsWith(DirectorySeparatorString))
+                {
+                    replacementText = replacementText.Remove(replacementText.Length - DirectorySeparatorString.Length);
+                }
+                Insert(replacementText);
+            }
+        }
+
+        /// <summary>
+        /// sdfsdfsdfsthe next
+        /// </summary>
+        public static void FinalizeCompletion(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.AutoRemoveSlash();
+        }
     }
 }

@@ -177,6 +177,9 @@
   <data name="ExchangePointAndMarkDescription" xml:space="preserve">
     <value>Mark the location of the cursor and move the cursor to the position of the previous mark</value>
   </data>
+  <data name="FinaliseCompletion" xml:space="preserve">
+    <value>Autoremoveslash</value>
+  </data>
   <data name="ForwardCharDescription" xml:space="preserve">
     <value>Move the cursor forward one character</value>
   </data>
