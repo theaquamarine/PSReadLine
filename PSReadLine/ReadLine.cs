@@ -481,6 +481,35 @@ namespace Microsoft.PowerShell
                 var moveToEndOfLineCommandCount = _moveToEndOfLineCommandCount;
 
                 var key = ReadKey();
+                if (key == PSKeyInfo.From(ConsoleKey.Spacebar))
+                {
+                    // Not sure where this belongs:
+                    // In inputloop? Can run with any other settings, doesn't need function setting etc, but kind of opaque and weird?
+                    // Function to remove + selfinsert? Bit weird, requires binding, prevents key doing anything else. Would let it go in Completion.cs
+                    // Special case in selfinsert to do magic if character to insert is a separator? Minimum config, supports rebound/whatever keys, but weird
+                    
+                    var prevtoken = FindToken(_current, FindTokenMode.Previous);
+
+                    int cursorAdjustment = 0; // GetReplacementTextForDirectory requires this, no use here.
+                    
+                    // Check the previous token is an autocompleted ProviderContainer before removing separator
+                    if (_current > 0 &&
+                        _buffer[_current - 1] == System.IO.Path.DirectorySeparatorChar &&
+                        _previousCompletion?.ResultType == CompletionResultType.ProviderContainer &&
+                        prevtoken != null &&
+                        (prevtoken.Text == GetReplacementTextForDirectory(_previousCompletion.CompletionText, ref cursorAdjustment) ||
+                        "& " + prevtoken.Text == GetReplacementTextForDirectory(_previousCompletion.CompletionText, ref cursorAdjustment)))
+                    {
+                        Delete(_current - 1, 1); // adds removing the separator as an undo step, then typing new key. Not sure if desirable.
+                        // Could use Replace to swap as a single undo step? If in function/selfinsert
+
+                        // Handle quoted paths - put the cursor outside the quote, like PowerShell without PSReadLine would.
+                        if ((prevtoken.Text.EndsWith("\'") || prevtoken.Text.EndsWith("\"")) && _current < _buffer.Length)
+                        {
+                            _current += 1;
+                        }
+                    }
+                }
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
@@ -521,6 +550,7 @@ namespace Microsoft.PowerShell
                     _searchHistoryPrefix = null;
                 }
                 if (recallHistoryCommandCount == _recallHistoryCommandCount)
+
                 {
                     _recallHistoryCommandCount = 0;
                 }

@@ -23,6 +23,7 @@ namespace Microsoft.PowerShell
         private int _tabCommandCount;
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
+        private CompletionResult _previousCompletion;
 
         private static readonly Dictionary<CompletionResultType, PSKeyInfo []> KeysEndingCompletion =
             new Dictionary<CompletionResultType, PSKeyInfo []>
@@ -382,6 +383,7 @@ namespace Microsoft.PowerShell
                 MoveCursor(_current + cursorAdjustment);
             }
             completions.ReplacementLength = replacementText.Length;
+            _previousCompletion = completionResult;
         }
 
         private static string GetReplacementTextForDirectory(string replacementText, ref int cursorAdjustment)
